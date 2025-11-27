@@ -1,0 +1,50 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, test ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore "SPT 4.0/TarkovRareCollectibles.sln"
+      
+    - name: Build
+      run: dotnet build "SPT 4.0/TarkovRareCollectibles.sln" --configuration Release --no-restore
+      
+    - name: Create package structure
+      run: |
+        mkdir -p release
+        cd "SPT 4.0/bin/SPT/user/mods"
+        zip -r "../../../../../release/yellowdoge-tarkovrarecollectibles.zip" yellowdoge-tarkovrarecollectibles
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: yellowdoge-tarkovrarecollectibles
+        path: release/yellowdoge-tarkovrarecollectibles.zip
+        
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/yellowdoge-tarkovrarecollectibles.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
