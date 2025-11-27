@@ -1,0 +1,61 @@
+name: Build SPT 4.0 Mod
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'SPT 4.0/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore "SPT 4.0/TarkovRareCollectibles.csproj"
+      
+    - name: Build
+      run: dotnet build "SPT 4.0/TarkovRareCollectibles.csproj" --configuration Release --no-restore
+      
+    - name: Prepare artifact structure
+      run: |
+        mkdir -p artifact/yellowdoge-tarkovrarecollectibles
+        cp -r "SPT 4.0/bin/SPT/user/mods/yellowdoge-tarkovrarecollectibles"/* artifact/yellowdoge-tarkovrarecollectibles/ || true
+        cp -r "SPT 4.0/config" artifact/yellowdoge-tarkovrarecollectibles/
+        cp -r "SPT 4.0/db" artifact/yellowdoge-tarkovrarecollectibles/
+        cp "SPT 4.0/LICENSE" artifact/yellowdoge-tarkovrarecollectibles/ || true
+        ls -la artifact/yellowdoge-tarkovrarecollectibles/
+        
+    - name: Create ZIP archive
+      run: |
+        cd artifact
+        zip -r ../TarkovRareCollectibles-SPT4.0.zip yellowdoge-tarkovrarecollectibles/
+        cd ..
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: TarkovRareCollectibles-SPT4.0
+        path: TarkovRareCollectibles-SPT4.0.zip
+        
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: TarkovRareCollectibles-SPT4.0.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
