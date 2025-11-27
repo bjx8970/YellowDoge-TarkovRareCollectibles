@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Explicitly include source files since we disabled default items -->
-    <Compile Include="**\*.cs" />
+    <Compile Include="*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="bundles\**">
