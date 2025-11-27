@@ -11,6 +11,29 @@ Inspired by other extraction shooters like Arena Breakout: Infinite and Delta Fo
 
 ---
 
+## Development
+
+### Building from Source
+
+This project uses GitHub Actions for automated builds. On every push to `main` or `test` branches, the code is automatically compiled and packaged.
+
+#### Manual Build (Windows)
+```powershell
+cd "SPT 4.0"
+dotnet restore
+dotnet build --configuration Release
+```
+
+#### Creating a Release
+To create a new release:
+1. Create a new tag: `git tag v1.1.6`
+2. Push the tag: `git push origin v1.1.6`
+3. GitHub Actions will automatically build and create a release with the compiled artifact
+
+The compiled mod will be available in the GitHub Releases page.
+
+---
+
 ## Item Spawn Tabset {.tabset}
 
 ### Adjust Loot Spawn Modifier
