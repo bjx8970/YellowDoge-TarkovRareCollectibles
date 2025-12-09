@@ -1,0 +1,91 @@
+name: Release SPT 4.0 Mod
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        working-directory: ./SPT\ 4.0
+        run: dotnet restore
+
+      - name: Build
+        working-directory: ./SPT\ 4.0
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Extract Version from Tag
+        id: version
+        run: |
+          TAG=${{ github.ref }}
+          VERSION=${TAG#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Create Release Package
+        working-directory: ./SPT\ 4.0
+        run: |
+          # Create the mod directory structure
+          mkdir -p build/yellowdoge-tarkovrarecollectibles
+          
+          # Copy the compiled DLL
+          cp bin/SPT/user/mods/yellowdoge-tarkovrarecollectibles/TarkovRareCollectibles.dll build/yellowdoge-tarkovrarecollectibles/
+          
+          # Copy config files
+          cp -r config build/yellowdoge-tarkovrarecollectibles/
+          cp -r bundles build/yellowdoge-tarkovrarecollectibles/
+          cp -r db build/yellowdoge-tarkovrarecollectibles/
+          cp bundles.json build/yellowdoge-tarkovrarecollectibles/
+          cp LICENSE build/yellowdoge-tarkovrarecollectibles/
+          
+          # Create package.json for the mod
+          cat > build/yellowdoge-tarkovrarecollectibles/package.json << EOF
+          {
+            "main": "TarkovRareCollectibles.dll",
+            "name": "yellowdoge-tarkovrarecollectibles",
+            "author": "bjx8970",
+            "version": "${{ steps.version.outputs.version }}",
+            "license": "MIT",
+            "modType": "server",
+            "dependencies": {}
+          }
+          EOF
+
+      - name: Create ZIP Archive
+        working-directory: ./SPT\ 4.0/build
+        run: |
+          zip -r ../TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip yellowdoge-tarkovrarecollectibles/
+          ls -lah ../TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: SPT\ 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Release Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: TarkovRareCollectibles-Release-${{ steps.version.outputs.version }}
+          path: SPT\ 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
+          retention-days: 90
