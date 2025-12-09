@@ -1,9 +1,0 @@
-{
-  "main": "TarkovRareCollectibles.dll",
-  "name": "yellowdoge-tarkovrarecollectibles",
-  "author": "bjx8970",
-  "version": "1.1.5",
-  "license": "MIT",
-  "modType": "server",
-  "dependencies": {}
-}
