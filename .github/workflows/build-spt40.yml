@@ -31,23 +31,23 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        working-directory: ./SPT\ 4.0
+        working-directory: 'SPT 4.0'
         run: dotnet restore
 
       - name: Build
-        working-directory: ./SPT\ 4.0
+        working-directory: 'SPT 4.0'
         run: dotnet build --configuration Release --no-restore
 
       - name: Extract Version
         id: version
-        working-directory: ./SPT\ 4.0
+        working-directory: 'SPT 4.0'
         run: |
           VERSION=$(grep -oP '(?<=<Version>)[^<]+' TarkovRareCollectibles.csproj)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
       - name: Create Release Package
-        working-directory: ./SPT\ 4.0
+        working-directory: 'SPT 4.0'
         run: |
           # Create the mod directory structure
           mkdir -p build/yellowdoge-tarkovrarecollectibles
@@ -76,7 +76,7 @@ jobs:
           EOF
 
       - name: Create ZIP Archive
-        working-directory: ./SPT\ 4.0/build
+        working-directory: 'SPT 4.0/build'
         run: |
           zip -r ../TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip yellowdoge-tarkovrarecollectibles/
           ls -lah ../TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
@@ -85,14 +85,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TarkovRareCollectibles-${{ steps.version.outputs.version }}
-          path: SPT\ 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
+          path: 'SPT 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip'
           retention-days: 30
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: SPT\ 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip
+          files: 'SPT 4.0/TarkovRareCollectibles-${{ steps.version.outputs.version }}.zip'
           draft: false
           prerelease: false
         env:
